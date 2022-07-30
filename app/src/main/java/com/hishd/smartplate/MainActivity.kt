@@ -9,6 +9,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,7 +23,7 @@ import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
-    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+//    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     private lateinit var binding: ActivityMainBinding
     private val isCameraPermissionsGranted: Boolean get() = checkAndRequestPermissions()
 
@@ -47,6 +48,12 @@ class MainActivity : AppCompatActivity() {
         resultLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) {
             binding.imgSelected.setImageURI(null)
             binding.imgSelected.setImageURI(tempImageUri)
+            if(tempImageUri != null) {
+                val inputImage: InputImage = InputImage.fromFilePath(this@MainActivity, tempImageUri!!)
+                recognizeText(inputImage)
+            } else {
+                Toast.makeText(this@MainActivity, "File provider Uri is null", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -109,6 +116,7 @@ class MainActivity : AppCompatActivity() {
     private fun processTextBlock(result: Text) {
         // [START mlkit_process_text_block]
         val resultText = result.text
+        Log.d(applicationContext.packageName, resultText)
         for (block in result.textBlocks) {
             val blockText = block.text
             val blockCornerPoints = block.cornerPoints
