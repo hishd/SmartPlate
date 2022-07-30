@@ -14,12 +14,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 object TextRecognizer {
-    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-
+    private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    /**
+     * ### Usage
+     * Start the recognition process using the provided [Uri]
+     *
+     * @param context the context which the process is being executed
+     * @param uri the [Uri] of the source
+     * @param callback the completion block which will deliver the Result
+     */
     fun recognizeText(context: Context, uri: Uri, callback: (String?) -> Unit) {
         // [START run_detector]
         val image: InputImage = InputImage.fromFilePath(context, uri)
-        recognizer.process(image)
+        textRecognizer.process(image)
             .addOnSuccessListener { visionText ->
                 CoroutineScope(Dispatchers.IO).launch {
                     val result = ThreeDigitPlateRecognizer.recognize(visionText.text)
@@ -34,10 +41,17 @@ object TextRecognizer {
         // [END run_detector]
     }
 
+    /**
+     * ### Usage
+     * Start the recognition process using the provided [Bitmap]
+     *
+     * @param bitmap the [Bitmap] of the image source
+     * @param callback the completion block which will deliver the Result
+     */
     fun recognizeText(bitmap: Bitmap, callback: (String?) -> Unit) {
         // [START run_detector]
         val image: InputImage = InputImage.fromBitmap(bitmap, 0)
-        recognizer.process(image)
+        textRecognizer.process(image)
             .addOnSuccessListener { visionText ->
                 CoroutineScope(Dispatchers.Main).launch {
                     val result = ThreeDigitPlateRecognizer.recognize(visionText.text)
@@ -52,6 +66,7 @@ object TextRecognizer {
         // [END run_detector]
     }
 
+    //TODO: Remove the method after testing is done
     private suspend fun processTextBlock(result: Text): String? {
         // [START mlkit_process_text_block]
 //        val resultText = result.text
