@@ -1,6 +1,7 @@
 package com.hishd.platekit.recognizer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
@@ -13,6 +14,19 @@ object TextRecognizer {
     fun recognizeText(context: Context, uri: Uri, callback: (String) -> Unit) {
         // [START run_detector]
         val image: InputImage = InputImage.fromFilePath(context, uri)
+        recognizer.process(image)
+            .addOnSuccessListener { visionText ->
+                callback(processTextBlock(visionText))
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+            }
+        // [END run_detector]
+    }
+
+    fun recognizeText(bitmap: Bitmap, callback: (String) -> Unit) {
+        // [START run_detector]
+        val image: InputImage = InputImage.fromBitmap(bitmap, 0)
         recognizer.process(image)
             .addOnSuccessListener { visionText ->
                 callback(processTextBlock(visionText))

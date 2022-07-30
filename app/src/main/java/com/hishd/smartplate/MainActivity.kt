@@ -1,15 +1,10 @@
 package com.hishd.smartplate
 
 import android.Manifest
-import android.content.ContentValues
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,7 +19,8 @@ class MainActivity : AppCompatActivity() {
     private val isCameraPermissionsGranted: Boolean get() = checkAndRequestPermissions()
 
     private var tempImageUri: Uri? = null
-    private lateinit var resultLauncher: ActivityResultLauncher<Uri>
+    private lateinit var resultLauncherCamera: ActivityResultLauncher<Uri>
+    private lateinit var resultLauncherGallery: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,14 +33,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initiateResultLaunchers() {
-        resultLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) {
-            binding.imgSelected.setImageURI(null)
-            binding.imgSelected.setImageURI(tempImageUri)
-            if(tempImageUri != null) {
-                recognizeText(tempImageUri)
-            } else {
-                Toast.makeText(this@MainActivity, "File provider Uri is null", Toast.LENGTH_SHORT).show()
+        resultLauncherCamera = registerForActivityResult(ActivityResultContracts.TakePicture()) {
+            binding.imgSelected.apply {
+                setImageURI(null)
+                setImageURI(tempImageUri)
             }
+            recognizeText(tempImageUri)
+        }
+
+        resultLauncherGallery = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            binding.imgSelected.apply {
+                setImageURI(null)
+                setImageURI(uri)
+            }
+            recognizeText(uri)
         }
     }
 
@@ -55,7 +57,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         binding.btnGallery.setOnClickListener { view ->
-
+            captureFromGallery()
         }
     }
 
@@ -71,11 +73,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun captureFromGallery() = resultLauncherGallery.launch("image/*")
+
     private fun captureFromCamera() {
         if(tempImageUri == null) {
             tempImageUri = initTempImageUri()
         }
-        resultLauncher.launch(tempImageUri)
+        resultLauncherCamera.launch(tempImageUri)
     }
 
     private fun initTempImageUri(): Uri {
