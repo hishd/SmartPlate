@@ -14,22 +14,14 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.Text
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.hishd.platekit.recognizer.TextRecognizer
 import com.hishd.smartplate.databinding.ActivityMainBinding
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
-//    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     private lateinit var binding: ActivityMainBinding
     private val isCameraPermissionsGranted: Boolean get() = checkAndRequestPermissions()
-
-    private var image_uri: Uri? = null
-    private val RESULT_LOAD_IMAGE = 123
-    private val IMAGE_CAPTURE_CODE = 600
 
     private var tempImageUri: Uri? = null
     private lateinit var resultLauncher: ActivityResultLauncher<Uri>
@@ -49,8 +41,7 @@ class MainActivity : AppCompatActivity() {
             binding.imgSelected.setImageURI(null)
             binding.imgSelected.setImageURI(tempImageUri)
             if(tempImageUri != null) {
-                val inputImage: InputImage = InputImage.fromFilePath(this@MainActivity, tempImageUri!!)
-                recognizeText(inputImage)
+                recognizeText(tempImageUri)
             } else {
                 Toast.makeText(this@MainActivity, "File provider Uri is null", Toast.LENGTH_SHORT).show()
             }
@@ -81,13 +72,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun captureFromCamera() {
-//        val values = ContentValues()
-//        values.put(MediaStore.Images.Media.TITLE, "Captured Image")
-//        values.put(MediaStore.Images.Media.DESCRIPTION, "Captured Image from camera")
-//        image_uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-//        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-//        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, image_uri)
-
         if(tempImageUri == null) {
             tempImageUri = initTempImageUri()
         }
@@ -101,37 +85,14 @@ class MainActivity : AppCompatActivity() {
         return FileProvider.getUriForFile(applicationContext, applicationContext.packageName, tempImage)
     }
 
-    private fun recognizeText(image: InputImage) {
-        // [START run_detector]
-        recognizer.process(image)
-            .addOnSuccessListener { visionText ->
-                processTextBlock(visionText)
-            }
-            .addOnFailureListener { e ->
-                e.printStackTrace()
-            }
-        // [END run_detector]
+    private fun recognizeText(imageUri: Uri?) {
+        if(imageUri == null) {
+            Toast.makeText(this@MainActivity, "Provided image Uri is null", Toast.LENGTH_SHORT).show()
+            return
+        }
+        TextRecognizer.recognizeText(this@MainActivity, imageUri) { result ->
+            binding.lblResult.text = result
+        }
     }
 
-    private fun processTextBlock(result: Text) {
-        // [START mlkit_process_text_block]
-        val resultText = result.text
-        Log.d(applicationContext.packageName, resultText)
-        for (block in result.textBlocks) {
-            val blockText = block.text
-            val blockCornerPoints = block.cornerPoints
-            val blockFrame = block.boundingBox
-            for (line in block.lines) {
-                val lineText = line.text
-                val lineCornerPoints = line.cornerPoints
-                val lineFrame = line.boundingBox
-                for (element in line.elements) {
-                    val elementText = element.text
-                    val elementCornerPoints = element.cornerPoints
-                    val elementFrame = element.boundingBox
-                }
-            }
-        }
-        // [END mlkit_process_text_block]
-    }
 }

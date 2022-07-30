@@ -1,6 +1,7 @@
-package com.hishd.smartplate
+package com.hishd.platekit.recognizer
 
-import android.util.Log
+import android.content.Context
+import android.net.Uri
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
@@ -9,8 +10,9 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 object TextRecognizer {
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
-    fun recognizeText(image: InputImage, callback: (String) -> Unit) {
+    fun recognizeText(context: Context, uri: Uri, callback: (String) -> Unit) {
         // [START run_detector]
+        val image: InputImage = InputImage.fromFilePath(context, uri)
         recognizer.process(image)
             .addOnSuccessListener { visionText ->
                 callback(processTextBlock(visionText))
