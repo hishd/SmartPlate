@@ -51,12 +51,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setActions() {
-        binding.btnCamera.setOnClickListener { view ->
+        binding.btnCamera.setOnClickListener {
             if(isCameraPermissionsGranted) {
                 captureFromCamera()
             }
         }
-        binding.btnGallery.setOnClickListener { view ->
+        binding.btnGallery.setOnClickListener {
             captureFromGallery()
         }
     }

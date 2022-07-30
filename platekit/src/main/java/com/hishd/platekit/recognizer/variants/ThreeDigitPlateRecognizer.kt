@@ -7,6 +7,9 @@ import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+/**
+ * A Singleton class instance to recognize 3 Digit licence plate numbers
+ */
 object ThreeDigitPlateRecognizer {
     private const val TAG: String = "ThreeDigitPlateRecognizer"
     private var prefixDigits: String? = null
@@ -15,6 +18,13 @@ object ThreeDigitPlateRecognizer {
     private var isPrefixCaptured: Boolean = false
     private var isSuffixCaptured: Boolean = false
 
+    /**
+     * ### Usage
+     * Process the [input] and recognize the licence plate number
+     *
+     * @param input the input string which is captured by the [TextRecognizer]
+     * @return the processed licence plate number which might be null if failed to recognize
+     */
     suspend fun recognize(input: String): String? = suspendCoroutine { continuation ->
         //Resetting Values
         prefixDigits = null
@@ -29,6 +39,7 @@ object ThreeDigitPlateRecognizer {
         //Step 02: Separate the groups using [NWLN] object
         val splitGroup = lines.split("[brkln]")
 
+        //Step 03: For each of the objects in the array process the data
         splitGroup.forEach { text ->
             if(!isPrefixCaptured) {
                 capturePrefix(text)
@@ -44,6 +55,12 @@ object ThreeDigitPlateRecognizer {
         }
     }
 
+    /**
+     * ### Usage
+     * Capture the Prefix of the licence plate based on the [input]
+     *
+     * @param input the input string which is sent by [recognize]
+     */
     private fun capturePrefix(input: String) {
         Log.d(TAG, "Checking Prefix : $input")
         if(isPrefixCaptured)
@@ -64,10 +81,17 @@ object ThreeDigitPlateRecognizer {
                 return
             }
         } else {
+            //Recursively call the method with dropping the start index character
             capturePrefix(input.drop(1))
         }
     }
 
+    /**
+     * ### Usage
+     * Capture the Suffix of the licence plate based on the [input]
+     *
+     * @param input the input string which is sent by [recognize]
+     */
     private fun captureSuffix(input: String) {
         Log.d(TAG, "Checking Suffix : $input")
         if(isSuffixCaptured)
@@ -87,6 +111,7 @@ object ThreeDigitPlateRecognizer {
             suffixDigits = input
             Log.d(TAG, "Suffix is : $suffixDigits")
         } else {
+            //Recursively call the method with dropping the start index character
             captureSuffix(input.drop(1))
         }
     }
