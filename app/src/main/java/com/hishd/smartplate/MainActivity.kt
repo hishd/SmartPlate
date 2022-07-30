@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun recognizeText(imageUri: Uri?) {
+        binding.lblResult.text = "Processing...."
         if(imageUri == null) {
             Toast.makeText(this@MainActivity, "Provided image Uri is null", Toast.LENGTH_SHORT).show()
             return
