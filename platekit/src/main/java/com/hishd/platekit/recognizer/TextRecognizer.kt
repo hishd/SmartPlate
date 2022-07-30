@@ -7,16 +7,26 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.hishd.platekit.recognizer.variants.ThreeDigitPlateRecognizer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object TextRecognizer {
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
-    fun recognizeText(context: Context, uri: Uri, callback: (String) -> Unit) {
+    fun recognizeText(context: Context, uri: Uri, callback: (String?) -> Unit) {
         // [START run_detector]
         val image: InputImage = InputImage.fromFilePath(context, uri)
         recognizer.process(image)
             .addOnSuccessListener { visionText ->
-                callback(processTextBlock(visionText))
+                CoroutineScope(Dispatchers.IO).launch {
+                    val result = ThreeDigitPlateRecognizer.recognize(visionText.text)
+                    withContext(Dispatchers.Main) {
+                        callback(result)
+                    }
+                }
             }
             .addOnFailureListener { e ->
                 e.printStackTrace()
@@ -24,12 +34,17 @@ object TextRecognizer {
         // [END run_detector]
     }
 
-    fun recognizeText(bitmap: Bitmap, callback: (String) -> Unit) {
+    fun recognizeText(bitmap: Bitmap, callback: (String?) -> Unit) {
         // [START run_detector]
         val image: InputImage = InputImage.fromBitmap(bitmap, 0)
         recognizer.process(image)
             .addOnSuccessListener { visionText ->
-                callback(processTextBlock(visionText))
+                CoroutineScope(Dispatchers.Main).launch {
+                    val result = ThreeDigitPlateRecognizer.recognize(visionText.text)
+                    withContext(Dispatchers.Main) {
+                        callback(result)
+                    }
+                }
             }
             .addOnFailureListener { e ->
                 e.printStackTrace()
@@ -37,7 +52,7 @@ object TextRecognizer {
         // [END run_detector]
     }
 
-    private fun processTextBlock(result: Text): String {
+    private suspend fun processTextBlock(result: Text): String? {
         // [START mlkit_process_text_block]
 //        val resultText = result.text
 //        for (block in result.textBlocks) {
@@ -55,7 +70,7 @@ object TextRecognizer {
 //                }
 //            }
 //        }
-        return result.text
+        return ThreeDigitPlateRecognizer.recognize(result.text)
         // [END mlkit_process_text_block]
     }
 }
