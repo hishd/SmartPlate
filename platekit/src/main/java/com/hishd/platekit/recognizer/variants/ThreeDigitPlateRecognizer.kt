@@ -73,7 +73,7 @@ object ThreeDigitPlateRecognizer {
 
         if(input.length == 3) {
             val firstChar = input.first()
-            if(firstChar == 'c' || firstChar == 'b' || firstChar == 'a') {
+            if(firstChar == 'c' || firstChar == 'b' || firstChar == 'a' || firstChar == 'd') {
                 isPrefixCaptured = true
                 prefixDigits = input
                 Log.d(TAG, "Prefix is : $prefixDigits")
